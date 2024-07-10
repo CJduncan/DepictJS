@@ -2,22 +2,9 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import UIFlowGenerator from './UIFlowGenerator';
 import AboutSection from './AboutSection';
+import LandingPage from './LandingPage';
 
-const LandingPage = () => {
-  const navigate = useNavigate();
 
-  const handleGetStarted = () => {
-    navigate('/generator');
-  };
-
-  return (
-    <div className="landing-page">
-      <h1>Welcome to UI Flow Generator</h1>
-      <p>Visualize your project structure with ease</p>
-      <button onClick={handleGetStarted} className="cta-button">Get Started</button>
-    </div>
-  );
-};
 
 const App = () => {
   return (
