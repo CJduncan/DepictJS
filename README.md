@@ -30,7 +30,7 @@ UI Flow Generator is a powerful tool designed to visualize and analyze the struc
 
 ```bash
 git clone https://github.com/CJduncan/Ui-Flow.git
-cd ui-flow-generator
+cd ui-flow
 npm install
 ```
 
