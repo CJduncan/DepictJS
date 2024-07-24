@@ -1,4 +1,4 @@
-# 🌳 UI Flow Generator
+# 🌳 DepictJS
 
 
 
@@ -13,7 +13,7 @@
 
 ## 🚀 About
 
-UI Flow Generator is a powerful tool designed to visualize and analyze the structure of your React projects. By generating interactive, hierarchical diagrams of your component dependencies, it helps developers understand, document, and optimize their project architecture.
+DepictJS is a powerful tool designed to visualize and analyze the structure of your React projects. By generating interactive, hierarchical diagrams of your component dependencies, it helps developers understand, document, and optimize their project architecture.
 
 
 
@@ -29,8 +29,8 @@ UI Flow Generator is a powerful tool designed to visualize and analyze the struc
 ## 🛠️ Installation
 
 ```bash
-git clone https://github.com/CJduncan/Ui-Flow.git
-cd ui-flow
+git clone https://github.com/CJduncan/DepictJS.git
+cd DepictJS
 npm install
 ```
 
@@ -49,7 +49,7 @@ npm install
 
 ## ⚙️ Configuration
 
-You can customize the behavior of UI Flow Generator by modifying the following files:
+You can customize the behavior of DepictJS by modifying the following files:
 
 - `src/config/fileTypes.js`: Add or remove file extensions to be included in the analysis.
 - `src/config/ignoreList.js`: Specify directories or files to be excluded from the analysis.
@@ -57,7 +57,7 @@ You can customize the behavior of UI Flow Generator by modifying the following f
 
 ## 🤝 Contributing
 
-We welcome contributions to UI Flow Generator! 
+We welcome contributions to DepictJS! 
 
 ## 📄 License
 
