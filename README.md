@@ -1,70 +1,61 @@
-# Getting Started with Create React App
+# 🌳 UI Flow Generator
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
 
-In the project directory, you can run:
+## 📖 Table of Contents
+- [About](#about)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Contributing](#contributing)
 
-### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🚀 About
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+UI Flow Generator is a powerful tool designed to visualize and analyze the structure of your React projects. By generating interactive, hierarchical diagrams of your component dependencies, it helps developers understand, document, and optimize their project architecture.
 
-### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `npm run build`
+## ✨ Features
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- 🔍 **Automatic Dependency Analysis**: Scans your project files and identifies component relationships.
+- 🌿 **Hierarchical Visualization**: Displays your project structure in an easy-to-understand tree-like diagram.
+- 🖱️ **Interactive Graph**: Zoom, pan, and click nodes to explore your project structure.
+- 🎨 **Customizable Styling**: Adjust node colors, sizes, and layout to suit your preferences.
+- 📏 **Depth Control**: Filter the view to show only the desired levels of dependency.
+- 💾 **Export Functionality**: Save your visualizations as SVG files for documentation or sharing.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🛠️ Installation
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+git clone https://github.com/CJduncan/Ui-Flow.git
+cd ui-flow-generator
+npm install
+```
 
-### `npm run eject`
+## 🖥️ Usage
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+1. Start the application:
+   ```bash
+   npm start
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+2. Open your browser and navigate to `http://localhost:3000`.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+3. Drag and drop your project folder into the designated area or use the file picker to select your project.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+4. Explore your project's UI flow!
 
-## Learn More
+## ⚙️ Configuration
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+You can customize the behavior of UI Flow Generator by modifying the following files:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- `src/config/fileTypes.js`: Add or remove file extensions to be included in the analysis.
+- `src/config/ignoreList.js`: Specify directories or files to be excluded from the analysis.
+- `src/styles/nodeStyles.js`: Customize the appearance of nodes in the graph.
 
-### Code Splitting
+## 🤝 Contributing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+We welcome contributions to UI Flow Generator! 
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
