@@ -1,35 +1,21 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
-import UIFlowGenerator from './UIFlowGenerator';
-import AboutSection from './AboutSection';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import LandingPage from './LandingPage';
-
-
+import UIFlowGenerator from './UIFlowGenerator';
 
 const App = () => {
   return (
     <Router>
       <div className="app-container">
-        <nav className="top-nav">
-          <Link to="/" className="logo">UI Flow Generator</Link>
-          <ul className="nav-links">
-            <li><Link to="/">Home</Link></li>
-            <li><Link to="/generator">Generator</Link></li>
-            <li><Link to="/about">About</Link></li>
-          </ul>
+        <nav>
+          <Link to="/">Home</Link>
+          <Link to="/generator">Generator</Link>
         </nav>
 
-        <main>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/generator" element={<UIFlowGenerator />} />
-            <Route path="/about" element={<AboutSection />} />
-          </Routes>
-        </main>
-
-        <footer>
-          <p>&copy; 2023 UI Flow Generator. All rights reserved.</p>
-        </footer>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/generator" element={<UIFlowGenerator />} />
+        </Routes>
       </div>
     </Router>
   );

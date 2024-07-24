@@ -1,0 +1,514 @@
+/* Overall layout and typography */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+  }
+  
+  .ui-flow-generator {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Header styles */
+  .header {
+    background-color: #ffffff;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  
+  .header h1 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 24px;
+  }
+  
+  /* Depth slider styles */
+  .depth-slider {
+    background-color: #ffffff;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .depth-slider label {
+    margin-right: 15px;
+    font-weight: bold;
+    color: #34495e;
+  }
+  
+  .depth-slider input[type="range"] {
+    width: 200px;
+    -webkit-appearance: none;
+    background: #dfe6e9;
+    outline: none;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .depth-slider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #3498db;
+    cursor: pointer;
+    border: 4px solid #fff;
+    box-shadow: -407px 0 0 400px #3498db;
+  }
+  
+  /* Drop zone styles */
+  .drop-zone {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #ffffff;
+    border: 2px dashed #bdc3c7;
+    border-radius: 10px;
+    margin: 20px;
+    transition: all 0.3s ease;
+  }
+  
+  .drop-zone.dragging {
+    border-color: #3498db;
+    background-color: #ebf5fb;
+  }
+  
+  .drop-zone p {
+    font-size: 18px;
+    color: #7f8c8d;
+    text-align: center;
+    max-width: 80%;
+  }
+  
+  .drop-zone .icon {
+    font-size: 48px;
+    color: #bdc3c7;
+    margin-bottom: 20px;
+  }
+  
+  /* ReactFlow styles */
+  .react-flow {
+    width: 100%;
+    height: calc(100% - 60px); /* Adjust based on your header height */
+  }
+  
+  .react-flow__node {
+    width: auto;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 12px;
+    color: #333;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .react-flow__node-custom {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+  }
+  
+  .react-flow__node.hidden,
+  .react-flow__edge.hidden {
+    display: none;
+  }
+  
+  /* Custom node depth styles */
+  .custom-node.depth-1 { background-color: #ebf5fb; }
+  .custom-node.depth-2 { background-color: #d6eaf8; }
+  .custom-node.depth-3 { background-color: #aed6f1; }
+  .custom-node.depth-4 { background-color: #85c1e9; }
+  .custom-node.depth-5 { background-color: #5dade2; }
+  /* Add more depth styles as needed */
+  
+  .react-flow__handle {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #3498db;
+  }
+  
+  .react-flow__edge {
+    stroke: #95a5a6;
+    stroke-width: 2;
+  }
+  
+  .react-flow__edge.selected {
+    stroke: #2980b9;
+    stroke-width: 3;
+  }
+  
+  .react-flow__controls {
+    box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.08);
+  }
+  
+  .react-flow__controls button {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    color: #34495e;
+    transition: all 0.2s ease;
+  }
+  
+  .react-flow__controls button:hover {
+    background-color: #f7f9fa;
+  }
+  
+  /* Debug info styles */
+  .debug-info {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    font-size: 12px;
+    color: #7f8c8d;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 5px 10px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .header h1 {
+      font-size: 20px;
+    }
+  
+    .depth-slider {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .depth-slider label {
+      margin-bottom: 10px;
+    }
+  
+    .depth-slider input[type="range"] {
+      width: 100%;
+    }
+  
+    .drop-zone p {
+      font-size: 16px;
+    }
+  
+    .react-flow__node {
+      font-size: 10px;
+      padding: 8px 12px;
+    }
+  
+    .debug-info {
+      font-size: 10px;
+    }
+  }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .react-flow__node {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  /* Accessibility */
+  .react-flow__node:focus,
+  .react-flow__edge:focus {
+    outline: 2px solid #3498db;
+  }
+  
+  .depth-slider input[type="range"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.5);
+  }
+
+  /* LandingPage.css */
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+  }
+  
+  .landing-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  .landing-header {
+    background-color: #3498db;
+    color: white;
+    text-align: center;
+    padding: 60px 20px;
+  }
+  
+  .landing-header h1 {
+    font-size: 3em;
+    margin-bottom: 10px;
+  }
+  
+  .landing-header p {
+    font-size: 1.2em;
+    opacity: 0.9;
+  }
+  
+  .landing-main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+  
+  .feature-section {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+  
+  .feature {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 20px;
+    width: 250px;
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+  
+  .feature:hover {
+    transform: translateY(-5px);
+  }
+  
+  .feature-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+    display: block;
+  }
+  
+  .feature h2 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+  }
+  
+  .feature p {
+    font-size: 1em;
+    color: #666;
+  }
+  
+  .cta-button {
+    display: inline-block;
+    background-color: #2ecc71;
+    color: white;
+    text-decoration: none;
+    padding: 15px 30px;
+    border-radius: 5px;
+    font-size: 1.2em;
+    transition: background-color 0.3s ease;
+  }
+  
+  .cta-button:hover {
+    background-color: #27ae60;
+  }
+  
+  .landing-footer {
+    background-color: #34495e;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    margin-top: auto;
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .landing-header h1 {
+      font-size: 2.5em;
+    }
+  
+    .landing-header p {
+      font-size: 1em;
+    }
+  
+    .feature-section {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .feature {
+      width: 80%;
+      max-width: 300px;
+    }
+  }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .landing-header, .feature, .cta-button {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+  
+  .feature:nth-child(1) { animation-delay: 0.2s; }
+  .feature:nth-child(2) { animation-delay: 0.4s; }
+  .feature:nth-child(3) { animation-delay: 0.6s; }
+  .cta-button { animation-delay: 0.8s; }
+
+
+  /* App.css */
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+  }
+  
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  /* Navigation Styles */
+  nav {
+    background-color: #3498db;
+    padding: 15px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  nav a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    margin: 0 10px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+  }
+  
+  nav a:hover {
+    background-color: #2980b9;
+  }
+  
+  /* Active link style */
+  nav a.active {
+    background-color: #2980b9;
+    font-weight: bold;
+  }
+  
+  /* Main Content Area */
+  .main-content {
+    flex-grow: 1;
+    padding: 20px;
+  }
+  
+  /* Landing Page Styles */
+  .landing-page {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  
+  .landing-page h1 {
+    font-size: 2.5em;
+    color: #2c3e50;
+    margin-bottom: 20px;
+  }
+  
+  .landing-page p {
+    font-size: 1.2em;
+    color: #34495e;
+    max-width: 600px;
+    margin: 0 auto 30px;
+  }
+  
+  .cta-button {
+    display: inline-block;
+    background-color: #2ecc71;
+    color: white;
+    text-decoration: none;
+    padding: 12px 25px;
+    border-radius: 5px;
+    font-size: 1.1em;
+    transition: background-color 0.3s ease;
+  }
+  
+  .cta-button:hover {
+    background-color: #27ae60;
+  }
+  
+  /* UIFlowGenerator Page Styles */
+  .ui-flow-generator {
+    padding: 20px;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    nav {
+      padding: 10px 0;
+    }
+  
+    nav a {
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+  
+    .landing-page h1 {
+      font-size: 2em;
+    }
+  
+    .landing-page p {
+      font-size: 1em;
+    }
+  }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .landing-page h1,
+  .landing-page p,
+  .cta-button {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+  
+  .landing-page p { animation-delay: 0.2s; }
+  .cta-button { animation-delay: 0.4s; }
+
+  .export-button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+  }
+  
+  .export-button:hover {
+    background-color: #45a049;
+  }
