@@ -1,70 +1,37 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+
 
 const LandingPage = () => {
-  const navigate = useNavigate();
-
-  const handleGetStarted = () => {
-    navigate('/generator');
-  };
-
   return (
     <div className="landing-page">
-      <header className="hero">
+      <header className="landing-header">
         <h1>UI Flow Generator</h1>
-        <p className="tagline">Visualize Your Code Structure in Seconds</p>
-        <button onClick={handleGetStarted} className="cta-button">Get Started</button>
+        <p>Visualize your project structure with ease</p>
       </header>
-
-      <section className="features">
-        <h2>Streamline Your Development Process</h2>
-        <div className="feature-grid">
-          <div className="feature-item">
+      <main className="landing-main">
+        <section className="feature-section">
+          <div className="feature">
             <i className="feature-icon">📊</i>
-            <h3>Instant Visualization</h3>
-            <p>Transform your codebase into an interactive graph with a single click.</p>
+            <h2>Interactive Visualization</h2>
+            <p>Explore your project's structure through an interactive, hierarchical graph.</p>
           </div>
-          <div className="feature-item">
+          <div className="feature">
             <i className="feature-icon">🔍</i>
-            <h3>Deep Insights</h3>
-            <p>Gain a clear understanding of your project's structure and dependencies.</p>
+            <h2>Depth Control</h2>
+            <p>Adjust the hierarchy level to focus on specific layers of your project.</p>
           </div>
-          <div className="feature-item">
+          <div className="feature">
             <i className="feature-icon">🚀</i>
-            <h3>Boost Productivity</h3>
-            <p>Quickly navigate complex codebases and identify optimization opportunities.</p>
+            <h2>Easy to Use</h2>
+            <p>Simply drag and drop your project folder to get started.</p>
           </div>
-          <div className="feature-item">
-            <i className="feature-icon">🤝</i>
-            <h3>Enhance Collaboration</h3>
-            <p>Improve team communication with clear visual representations of your code.</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="how-it-works">
-        <h2>How It Works</h2>
-        <div className="steps">
-          <div className="step">
-            <div className="step-number">1</div>
-            <p>Upload your project folder</p>
-          </div>
-          <div className="step">
-            <div className="step-number">2</div>
-            <p>Our algorithm analyzes your code structure</p>
-          </div>
-          <div className="step">
-            <div className="step-number">3</div>
-            <p>View and interact with your generated UI flow</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="cta-section">
-        <h2>Ready to Optimize Your Workflow?</h2>
-        <p>Join developers who are visualizing their code like never before.</p>
-        <button onClick={handleGetStarted} className="cta-button">Start Generating Your UI Flow</button>
-      </section>
+        </section>
+        <Link to="/generator" className="cta-button">Get Started</Link>
+      </main>
+      <footer className="landing-footer">
+        <p>&copy; 2024 UI Flow Generator. All rights reserved.</p>
+      </footer>
     </div>
   );
 };

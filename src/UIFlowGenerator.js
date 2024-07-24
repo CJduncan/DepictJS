@@ -1,26 +1,19 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import ReactFlow, { 
   ReactFlowProvider, 
-  useNodesState, 
-  useEdgesState,
   Controls,
+  Background,
+  useNodesState,
+  useEdgesState,
   Handle,
   Position,
-  Background,
-  MiniMap
+  useReactFlow,
 } from 'reactflow';
 import dagre from 'dagre';
 import 'reactflow/dist/style.css';
 
 const CustomNode = ({ data }) => (
-  <div style={{ 
-    padding: '10px', 
-    border: '1px solid #ddd', 
-    borderRadius: '5px', 
-    background: data.isDirectory ? '#f0f0f0' : 'white',
-    fontSize: data.isDirectory ? '14px' : '12px',
-    fontWeight: data.isDirectory ? 'bold' : 'normal'
-  }}>
+  <div style={data.style}>
     <Handle type="target" position={Position.Top} />
     <div>{data.label}</div>
     <Handle type="source" position={Position.Bottom} />
@@ -39,7 +32,7 @@ const getLayoutedElements = (nodes, edges, direction = 'TB') => {
   const nodeHeight = 36;
 
   const isHorizontal = direction === 'LR';
-  dagreGraph.setGraph({ rankdir: direction });
+  dagreGraph.setGraph({ rankdir: direction, nodesep: 70, ranksep: 70 });
 
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
@@ -51,18 +44,54 @@ const getLayoutedElements = (nodes, edges, direction = 'TB') => {
 
   dagre.layout(dagreGraph);
 
-  return nodes.map((node) => {
+  const layoutedNodes = nodes.map((node) => {
     const nodeWithPosition = dagreGraph.node(node.id);
     return {
       ...node,
-      targetPosition: isHorizontal ? 'left' : 'top',
-      sourcePosition: isHorizontal ? 'right' : 'bottom',
       position: {
         x: nodeWithPosition.x - nodeWidth / 2,
         y: nodeWithPosition.y - nodeHeight / 2,
-      }
+      },
+      style: {
+        width: nodeWidth,
+        height: nodeHeight,
+        backgroundColor: '#f0f0f0',
+        border: '1px solid #999',
+        borderRadius: '5px',
+        padding: '5px',
+        fontSize: '12px',
+      },
+      targetPosition: isHorizontal ? 'left' : 'top',
+      sourcePosition: isHorizontal ? 'right' : 'bottom',
     };
   });
+
+  const layoutedEdges = edges.map((edge) => ({
+    ...edge,
+    type: 'smoothstep',
+    animated: true,
+    style: { stroke: '#555' },
+  }));
+
+  return { nodes: layoutedNodes, edges: layoutedEdges };
+};
+
+const Flow = ({ nodes, edges, onNodesChange, onEdgesChange, onInit }) => {
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      nodeTypes={nodeTypes}
+      fitView
+      fitViewOptions={{ padding: 0.2 }}
+      onInit={onInit}
+    >
+      <Controls />
+      <Background color="#aaa" gap={16} />
+    </ReactFlow>
+  );
 };
 
 const UIFlowGenerator = () => {
@@ -70,6 +99,10 @@ const UIFlowGenerator = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [debugInfo, setDebugInfo] = useState('');
+  const [maxDepth, setMaxDepth] = useState(1);
+  const [currentDepth, setCurrentDepth] = useState(1);
+  const reactFlowWrapper = useRef(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState(null);
 
   const onDragOver = useCallback((event) => {
     event.preventDefault();
@@ -88,17 +121,17 @@ const UIFlowGenerator = () => {
     setDebugInfo('Repository left the drop zone');
   }, []);
 
-  const isRelevantFile = (filename) => {
+  const isRelevantFile = useCallback((filename) => {
     const relevantExtensions = ['.js', '.jsx', '.ts', '.tsx', '.vue', '.php', '.rb', '.py'];
     return relevantExtensions.some(ext => filename.endsWith(ext));
-  };
+  }, []);
 
-  const shouldIgnoreDirectory = (dirName) => {
+  const shouldIgnoreDirectory = useCallback((dirName) => {
     const ignoredDirectories = ['node_modules', '.git', 'build', 'dist', 'public'];
     return ignoredDirectories.includes(dirName);
-  };
+  }, []);
 
-  const parseRepository = async (entry, path = '') => {
+  const parseRepository = useCallback(async (entry, path = '') => {
     const components = {};
     const stack = [[entry, path]];
 
@@ -113,7 +146,6 @@ const UIFlowGenerator = () => {
           const exports = Array.from(content.matchAll(/export\s+(default\s+)?(?:function|class|const)\s+(\w+)/g)).map(match => match[2]);
           const filePath = `${currentPath}/${currentEntry.name}`;
           components[filePath] = { imports, exports };
-          console.log(`Parsed ${filePath}:`, { imports, exports });
         }
       } else if (currentEntry.kind === 'directory' && !shouldIgnoreDirectory(currentEntry.name)) {
         for await (const handle of currentEntry.values()) {
@@ -123,36 +155,46 @@ const UIFlowGenerator = () => {
     }
 
     setDebugInfo(`Parsed ${Object.keys(components).length} components`);
-    console.log('Parsed components:', components);
     return components;
-  };
+  }, [isRelevantFile, shouldIgnoreDirectory]);
 
-  const generateGraph = (components) => {
+  const calculateDepth = useCallback((nodes, edges) => {
+    const nodeDepths = {};
+    const rootNodes = nodes.filter(node => !edges.some(edge => edge.target === node.id));
+
+    const assignDepth = (nodeId, depth) => {
+      if (!nodeDepths[nodeId] || depth < nodeDepths[nodeId]) {
+        nodeDepths[nodeId] = depth;
+        const childEdges = edges.filter(edge => edge.source === nodeId);
+        childEdges.forEach(edge => assignDepth(edge.target, depth + 1));
+      }
+    };
+
+    rootNodes.forEach(node => assignDepth(node.id, 1));
+
+    return { maxDepth: Math.max(...Object.values(nodeDepths)), nodeDepths };
+  }, []);
+
+  const generateGraph = useCallback((components) => {
     setDebugInfo('Generating graph...');
     let newNodes = [];
     let newEdges = [];
     const componentMap = new Map();
-    const directoryMap = new Map();
   
-    // Create nodes and group by directories
+    // Create nodes
     Object.entries(components).forEach(([file, data], index) => {
-      const parts = file.split('/');
-      const fileName = parts.pop();
-      const directory = parts.join('/');
-      
+      const fileName = file.split('/').pop();
       const node = {
         id: index.toString(),
         type: 'custom',
-        data: { label: fileName, fullPath: file },
+        data: { 
+          label: fileName,
+          fullPath: file,
+        },
         position: { x: 0, y: 0 }
       };
-  
-      if (!directoryMap.has(directory)) {
-        directoryMap.set(directory, []);
-      }
-      directoryMap.get(directory).push(node);
-      componentMap.set(file, node);
       newNodes.push(node);
+      componentMap.set(file, node);
     });
   
     // Create edges
@@ -174,57 +216,56 @@ const UIFlowGenerator = () => {
       });
     });
   
-    // Apply hierarchical layout
-    const g = new dagre.graphlib.Graph();
-    g.setGraph({ rankdir: 'TB', nodesep: 70, ranksep: 50 });
-    g.setDefaultEdgeLabel(() => ({}));
+    // Filter out isolated nodes
+    const connectedNodeIds = new Set(newEdges.flatMap(edge => [edge.source, edge.target]));
+    newNodes = newNodes.filter(node => connectedNodeIds.has(node.id));
   
-    // Add directory nodes
-    let yOffset = 0;
-    directoryMap.forEach((nodes, directory) => {
-      const dirNode = {
-        id: `dir-${directory}`,
-        type: 'custom',
-        data: { label: directory, isDirectory: true },
-        position: { x: 0, y: yOffset },
-        style: { width: 180, height: 40, backgroundColor: '#f0f0f0', borderRadius: 5 }
-      };
-      g.setNode(dirNode.id, { width: 180, height: 40 });
-      newNodes.push(dirNode);
-  
-      nodes.forEach((node, i) => {
-        g.setNode(node.id, { width: 150, height: 40 });
-        g.setEdge(dirNode.id, node.id);
-      });
-  
-      yOffset += (nodes.length + 1) * 60;
-    });
-  
-    newEdges.forEach((edge) => {
-      g.setEdge(edge.source, edge.target);
-    });
-  
-    dagre.layout(g);
-  
-    // Apply calculated positions
-    newNodes.forEach((node) => {
-      const nodeWithPosition = g.node(node.id);
-      node.position = {
-        x: nodeWithPosition.x - nodeWithPosition.width / 2,
-        y: nodeWithPosition.y - nodeWithPosition.height / 2
+    // Recalculate node IDs to be consecutive
+    const oldToNewIdMap = {};
+    newNodes = newNodes.map((node, index) => {
+      oldToNewIdMap[node.id] = index.toString();
+      return {
+        ...node,
+        id: index.toString()
       };
     });
   
-    setDebugInfo(`Generated ${newNodes.length} nodes and ${newEdges.length} edges`);
-    setNodes(newNodes);
-    setEdges(newEdges);
-  };
+    // Update edge references to use new node IDs
+    newEdges = newEdges.filter(edge => 
+      oldToNewIdMap[edge.source] !== undefined && 
+      oldToNewIdMap[edge.target] !== undefined
+    ).map(edge => ({
+      ...edge,
+      source: oldToNewIdMap[edge.source],
+      target: oldToNewIdMap[edge.target]
+    }));
+  
+    // Calculate depth for each node
+    const { maxDepth, nodeDepths } = calculateDepth(newNodes, newEdges);
+    setMaxDepth(maxDepth);
+    setCurrentDepth(maxDepth);
+  
+    newNodes = newNodes.map(node => ({
+      ...node,
+      data: {
+        ...node.data,
+        depth: nodeDepths[node.id] || 1
+      }
+    }));
+  
+    // Apply layout
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(newNodes, newEdges);
+  
+    setDebugInfo(`Generated ${layoutedNodes.length} nodes and ${layoutedEdges.length} edges`);
+    setNodes(layoutedNodes);
+    setEdges(layoutedEdges);
+  }, [calculateDepth, setNodes, setEdges, getLayoutedElements]);
 
-  const processRepository = async (folderHandle) => {
+  const processRepository = useCallback(async (folderHandle) => {
     setDebugInfo(`Repository found: ${folderHandle.name}`);
     const components = await parseRepository(folderHandle);
     generateGraph(components);
-  };
+  }, [parseRepository, generateGraph]);
 
   const onDrop = useCallback(async (event) => {
     event.preventDefault();
@@ -245,9 +286,9 @@ const UIFlowGenerator = () => {
         setDebugInfo('No repository folder found in the dropped items');
       }
     }
-  }, []);
+  }, [processRepository]);
 
-  const handleFileSelect = async () => {
+  const handleFileSelect = useCallback(async () => {
     try {
       const dirHandle = await window.showDirectoryPicker();
       await processRepository(dirHandle);
@@ -255,68 +296,176 @@ const UIFlowGenerator = () => {
       console.error('Error selecting directory:', error);
       setDebugInfo('Error selecting directory. Please try again.');
     }
-  };
+  }, [processRepository]);
+
+  const updateNodesVisibility = useCallback((depth) => {
+    setNodes(prevNodes => prevNodes.map(node => ({
+      ...node,
+      hidden: node.data.depth > depth,
+    })));
+
+    setEdges(prevEdges => prevEdges.map(edge => {
+      const sourceNode = nodes.find(n => n.id === edge.source);
+      const targetNode = nodes.find(n => n.id === edge.target);
+      return {
+        ...edge,
+        hidden: sourceNode.data.depth > depth || targetNode.data.depth > depth,
+      };
+    }));
+  }, [setNodes, setEdges, nodes]);
 
   useEffect(() => {
-    if (nodes.length > 0 && edges.length > 0) {
-      const layoutedNodes = getLayoutedElements(nodes, edges);
-      setNodes(layoutedNodes);
+    if (nodes.length > 0) {
+      updateNodesVisibility(currentDepth);
     }
-  }, []); // Only run once on mount
-  const handleReset = () => {
-    setNodes([]);
-    setEdges([]);
-    setDebugInfo('Graph reset. You can now upload a new repository.');
-  };
+  }, [currentDepth, nodes, updateNodesVisibility]);
+
+  const onInit = useCallback((instance) => {
+  setReactFlowInstance(instance);
+}, []);
+
+  const exportImage = useCallback(() => {
+    if (!reactFlowInstance) {
+      console.error('React Flow instance is not available');
+      setDebugInfo('Error: React Flow instance is not available');
+      return;
+    }
+  
+    const { nodes, edges, viewport } = reactFlowInstance.toObject();
+    const visibleNodes = nodes.filter(node => !node.hidden);
+    const visibleEdges = edges.filter(edge => !edge.hidden);
+  
+    if (visibleNodes.length === 0) {
+      console.error('No visible nodes to export');
+      setDebugInfo('Error: No visible nodes to export');
+      return;
+    }
+  
+    // Calculate the bounding box
+    const padding = 40;
+    const bbox = visibleNodes.reduce(
+      (acc, node) => ({
+        minX: Math.min(acc.minX, node.position.x),
+        minY: Math.min(acc.minY, node.position.y),
+        maxX: Math.max(acc.maxX, node.position.x + (node.width || 172)),
+        maxY: Math.max(acc.maxY, node.position.y + (node.height || 36)),
+      }),
+      { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
+    );
+  
+    const width = bbox.maxX - bbox.minX + padding * 2;
+    const height = bbox.maxY - bbox.minY + padding * 2;
+  
+    // Create SVG
+    const svgNS = "http://www.w3.org/2000/svg";
+    const svgElement = document.createElementNS(svgNS, "svg");
+    svgElement.setAttribute("width", width);
+    svgElement.setAttribute("height", height);
+    svgElement.setAttribute("viewBox", `${bbox.minX - padding} ${bbox.minY - padding} ${width} ${height}`);
+  
+    // Add edges
+    visibleEdges.forEach(edge => {
+      const path = document.createElementNS(svgNS, "path");
+      const sourceNode = visibleNodes.find(n => n.id === edge.source);
+      const targetNode = visibleNodes.find(n => n.id === edge.target);
+      if (sourceNode && targetNode) {
+        const sx = sourceNode.position.x + (sourceNode.width || 172) / 2;
+        const sy = sourceNode.position.y + (sourceNode.height || 36);
+        const tx = targetNode.position.x + (targetNode.width || 172) / 2;
+        const ty = targetNode.position.y;
+        path.setAttribute("d", `M${sx},${sy} C${sx},${(sy + ty) / 2} ${tx},${(sy + ty) / 2} ${tx},${ty}`);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", "#555");
+        svgElement.appendChild(path);
+      }
+    });
+  
+    // Add nodes
+    visibleNodes.forEach(node => {
+      const group = document.createElementNS(svgNS, "g");
+      const rect = document.createElementNS(svgNS, "rect");
+      rect.setAttribute("x", node.position.x);
+      rect.setAttribute("y", node.position.y);
+      rect.setAttribute("width", node.width || 172);
+      rect.setAttribute("height", node.height || 36);
+      rect.setAttribute("fill", "#f0f0f0");
+      rect.setAttribute("stroke", "#999");
+      rect.setAttribute("rx", "5");
+  
+      const text = document.createElementNS(svgNS, "text");
+      text.setAttribute("x", node.position.x + (node.width || 172) / 2);
+      text.setAttribute("y", node.position.y + (node.height || 36) / 2);
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("dominant-baseline", "middle");
+      text.setAttribute("font-size", "12px");
+      text.textContent = node.data.label;
+  
+      group.appendChild(rect);
+      group.appendChild(text);
+      svgElement.appendChild(group);
+    });
+  
+    // Convert to SVG string and download
+    const svgString = new XMLSerializer().serializeToString(svgElement);
+    const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(svgBlob);
+    link.download = "flow-diagram.svg";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  
+    setDebugInfo('SVG exported successfully');
+  }, [reactFlowInstance]);
 
   return (
     <div className="ui-flow-generator">
-      <h2>UI Flow Generator</h2>
-      <div className="flow-container" style={{ height: '70vh', width: '100%' }}>
-        <ReactFlowProvider>
+      <ReactFlowProvider>
+        <div className="controls">
+          <div className="depth-slider">
+            <label htmlFor="depthSlider">Hierarchy Level: {currentDepth}</label>
+            <input 
+              id="depthSlider"
+              type="range"
+              min="1"
+              max={maxDepth}
+              value={currentDepth}
+              onChange={(e) => setCurrentDepth(parseInt(e.target.value))}
+            />
+          </div>
+          {nodes.length > 0 && (
+            <button onClick={exportImage} className="export-button">
+            Export as SVG
+            </button>
+          )}
+        </div>
+        <div
+          className={`drop-zone ${isDragging ? 'dragging' : ''}`}
+          onDragOver={onDragOver}
+          onDragEnter={onDragEnter}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+          onClick={handleFileSelect}
+          ref={reactFlowWrapper}
+          style={{ width: '100%', height: '500px' }}
+        >
           {nodes.length === 0 ? (
-            <div
-              className="drop-zone"
-              style={{
-                border: isDragging ? '2px dashed #4a90e2' : '2px solid #ccc',
-                background: isDragging ? '#e6f7ff' : '#f5f5f5',
-                height: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexDirection: 'column'
-              }}
-              onDragOver={onDragOver}
-              onDragEnter={onDragEnter}
-              onDragLeave={onDragLeave}
-              onDrop={onDrop}
-              onClick={handleFileSelect}
-            >
+            <>
               <p>Click here or drag and drop your repository folder here</p>
               <p className="debug-info">{debugInfo}</p>
-            </div>
+            </>
           ) : (
-            <ReactFlow
+            <Flow
               nodes={nodes}
               edges={edges}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
-              nodeTypes={nodeTypes}
-              fitView
-            >
-              <Controls />
-              <MiniMap />
-              <Background color="#aaa" gap={16} />
-            </ReactFlow>
+              onInit={onInit}
+            />
           )}
-        </ReactFlowProvider>
-      </div>
-      <div className="debug-info">{debugInfo}</div>
-      {nodes.length > 0 && (
-        <button className="reset-button" onClick={handleReset}>
-          Reset Graph
-        </button>
-      )}
+        </div>
+        <div className="debug-info">{debugInfo}</div>
+      </ReactFlowProvider>
     </div>
   );
 };
